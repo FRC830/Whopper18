@@ -48,8 +48,7 @@ model {
 
             // Defining my dependencies. In this case, WPILib (+ friends), CTRE Toolsuite (Talon SRX)
             // and NavX.
-            useLibrary(it, "wpilib", "ctre", "navx","C:\\Users\\RatPack\\workspace\\2018Robot\\Lib830")
-            // Including Lib830 using full path
+            useLibrary(it, "wpilib", "ctre", "navx")
         }
     }
 }
