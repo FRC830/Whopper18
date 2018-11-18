@@ -43,6 +43,7 @@ model {
                 }
                 exportedHeaders {
                     srcDir 'src/main/include'
+                    srcDir 'src/Lib830'
                 }
             }
 

@@ -1,7 +1,7 @@
 
 #include "Robot.h"
 #include <iostream>
-
+#include "Lib830.h"
 
 
 static  const int FRONT_LEFT_WHEEL = 0;  //Same values as Robot2018 Github
@@ -19,9 +19,11 @@ MecanumDrive m_drive{frontl, frontr, backl, backr};
 static const GenericHID::JoystickHand LEFT = GenericHID::kLeftHand;
 static const GenericHID::JoystickHand RIGHT = GenericHID::kRightHand;
 
+
 XboxController pilot{0};
 AnalogGyro gyro{GYRO_ANALOG_IN};
 Timer autonTimer{};
+static const int TICKS_TO_ACCEL = 20;
 
 void Robot::RobotInit() {
     gyro.Calibrate();
@@ -56,11 +58,17 @@ void Robot::TeleopInit() {
     gyro.Calibrate();
 
 }
+
+//unfinished code
 double SmoothCosineTransformation(double input) {
     // Use a cosine function to activate a smooth start and stop
     double output = input;
     return output;
 }
+
+double prev_y;
+double prev_x;
+
 void Robot::TeleopPeriodic() {
     // using a ternary operator to set rawX/Y to 0 if value is below minimum threshold
     double rawX = abs(pilot.GetX(LEFT)) < DEADZONE_THRESHOLD ? 0 : pilot.GetX(LEFT);
@@ -72,9 +80,9 @@ void Robot::TeleopPeriodic() {
 
     SmartDashboard::PutData("Gyro",&gyro);
 
-    double y = SmoothCosineTransformation(-rawY); // Testing, robot has inverse controls
-    double x = SmoothCosineTransformation(rawX);
-    m_drive.DriveCartesian(y , x, turn);
+    // double y = SmoothCosineTransformation(-rawY); // Testing, robot has inverse controls
+    // double x = SmoothCosineTransformation(rawX);
+    m_drive.DriveCartesian(rawY, rawX, turn);
 
 }
 
