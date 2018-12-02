@@ -12,7 +12,7 @@ void Robot::RobotInit() {
 }
 
 void Robot::RobotPeriodic() {
-
+ 
 }
 
 void Robot::AutonomousInit() {
@@ -23,28 +23,32 @@ void Robot::AutonomousInit() {
 }
 void Robot::AutonomousPeriodic() {
 
-    double rangeMeasurement = sonic_sensor.GetRangeInches();
-    SmartDashboard::PutNumber("sonicRange (in)", rangeMeasurement);
-    int distance_from_center = 70;
-    int random_threshold = 5;
-    if (rangeMeasurement <= random_threshold || rangeMeasurement >= distance_from_center) {
-        double rawGyroReading = gyro.GetAngle();
-        SmartDashboard::PutNumber("getAngleAuto",rawGyroReading);
-        double correctedGyro = - rawGyroReading / 90;
-        m_drive.DriveCartesian(0.25, 0, correctedGyro);
-    } else {
-        m_drive.DriveCartesian(0, 0, 0);
+    double rangeMeasurement = sonic_sensor.GetRangeMM();
+    SmartDashboard::PutNumber("sonicRange (mm)", rangeMeasurement);
+    int distance_from_center = 1778;
+    int random_threshold = 127;
+    double rawGyroReading = gyro.GetAngle();
+    SmartDashboard::PutNumber("getAngleAuto",rawGyroReading);
+    double correctedGyro = - rawGyroReading / 90;
     }
     AutoMode mode = chooser.GetSelected();
     if (mode == NOTHING) {
-         
 
     }
     else if (mode == SIDE) {
-
-    }
+        if (rangeMeasurement <= random_threshold || rangeMeasurement >= distance_from_center) {
+            m_drive.DriveCartesian(0.25, 0, correctedGyro);
+        } 
+        else {
+            m_drive.DriveCartesian(0, 0, 0, 0);
+        }
     else if (mode == CENTER) {
-
+        if (rangeMeasurement <= random_threshold || rangeMeasurement >= distance_from_center) {
+            m_drive.DriveCartesian(0.25, 0, correctedGyro);
+        } 
+        else {
+            m_drive.DriveCartesian(0, 0, 0, 0);
+        }
     }
     
 }
