@@ -1,38 +1,14 @@
 
 #include "Robot.h"
-#include <iostream>
-#include "Lib830.h"
-
-
-static  const int FRONT_LEFT_WHEEL = 0;  //Same values as Robot2018 Github
-static const int FRONT_RIGHT_WHEEL = 6;
-static const int BOTTOM_LEFT_WHEEL = 1;
-static const int BOTTOM_RIGHT_WHEEL = 7;
-static const int GYRO_ANALOG_IN = 0;
-static const double DEADZONE_THRESHOLD = .05;
-static const int ULTRASONIC_PING_PIN = 8;
-static const int ULTRASONIC_ECHO_PIN = 9;
-Ultrasonic sonic_sensor{ULTRASONIC_PING_PIN, ULTRASONIC_ECHO_PIN};
-
-VictorSP frontl{FRONT_LEFT_WHEEL};
-VictorSP frontr{FRONT_RIGHT_WHEEL};
-VictorSP backl{BOTTOM_LEFT_WHEEL};
-VictorSP backr{BOTTOM_RIGHT_WHEEL};
-MecanumDrive m_drive{frontl, frontr, backl, backr};
-
-static const GenericHID::JoystickHand LEFT = GenericHID::kLeftHand;
-static const GenericHID::JoystickHand RIGHT = GenericHID::kRightHand;
-
-
-XboxController pilot{0};
-AnalogGyro gyro{GYRO_ANALOG_IN};
-Timer autonTimer{};
-static const int TICKS_TO_ACCEL = 20;
 
 void Robot::RobotInit() {
     gyro.Calibrate();
     sonic_sensor.SetEnabled(true);
     sonic_sensor.SetAutomaticMode(true);
+    chooser.AddDefault("Nothing", AutoMode(NOTHING));
+    chooser.AddObject("Side", AutoMode(SIDE));
+    chooser.AddObject("Center", AutoMode(CENTER));
+    SmartDashboard::PutData("Chooser", &chooser);
 }
 
 void Robot::RobotPeriodic() {
@@ -46,21 +22,30 @@ void Robot::AutonomousInit() {
 
 }
 void Robot::AutonomousPeriodic() {
+
     double rangeMeasurement = sonic_sensor.GetRangeInches();
     SmartDashboard::PutNumber("sonicRange (in)", rangeMeasurement);
     int distance_from_center = 70;
     int random_threshold = 5;
     if (rangeMeasurement <= random_threshold || rangeMeasurement >= distance_from_center) {
-        //m_drive.DriveCartesian(0.2, 0, 0);
-        double gyroReading = gyro.GetAngle();
-        SmartDashboard::PutNumber("getAngleAuto",gyroReading);
-        double correctedGyro = - gyroReading / 90;
-        m_drive.DriveCartesian(0.4, 0, correctedGyro);
+        double rawGyroReading = gyro.GetAngle();
+        SmartDashboard::PutNumber("getAngleAuto",rawGyroReading);
+        double correctedGyro = - rawGyroReading / 90;
+        m_drive.DriveCartesian(0.25, 0, correctedGyro);
     } else {
         m_drive.DriveCartesian(0, 0, 0);
+    }
+    AutoMode mode = chooser.GetSelected();
+    if (mode == NOTHING) {
+         
 
     }
-    
+    else if (mode == SIDE) {
+
+    }
+    else if (mode == CENTER) {
+
+    }
     
 }
 
