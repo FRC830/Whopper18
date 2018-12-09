@@ -28,36 +28,64 @@ void Robot::AutonomousPeriodic() {
     int random_threshold = 0;
     double rawGyroReading = gyro.GetAngle();
     double gyroCorrectedTurn = - rawGyroReading / 90;
-    
+    double time = autonTimer.Get();
+
     //each case for auton starting position
     AutoMode mode = chooser.GetSelected();
+    //Ultrassonic sensor auton
+    // switch(mode){
+    //     case NOTHING:
+    //         m_drive.DriveCartesian(0, 0, 0);
+    //         break;
+    //     case SIDE:
+    //         if (rangeMeasurement <= random_threshold || rangeMeasurement >= distance_from_center) {
+    //             m_drive.DriveCartesian(0.25, 0, gyroCorrectedTurn);
+    //         } 
+    //         else {
+    //             m_drive.DriveCartesian(0, 0, 0, 0);
+    //         }
+    //         break;
+    //     case CENTER:
+    //         if (rangeMeasurement <= random_threshold || rangeMeasurement >= distance_from_center) {
+    //             m_drive.DriveCartesian(0.25, 0, gyroCorrectedTurn);
+    //         } 
+    //         else {
+    //             m_drive.DriveCartesian(0, 0, 0, 0);
+    //         }
+    //         break;
+    //     default:
+    //         m_drive.DriveCartesian(0, 0, 0);
+
+    //Timer Auton
     switch(mode){
-        case NOTHING:
-            m_drive.DriveCartesian(0, 0, 0);
-            break;
-        case SIDE:
-            if (rangeMeasurement <= random_threshold || rangeMeasurement >= distance_from_center) {
-                m_drive.DriveCartesian(0.25, 0, gyroCorrectedTurn);
-            } 
-            else {
-                m_drive.DriveCartesian(0, 0, 0, 0);
-            }
-            break;
-        case CENTER:
-            if (rangeMeasurement <= random_threshold || rangeMeasurement >= distance_from_center) {
-                m_drive.DriveCartesian(0.25, 0, gyroCorrectedTurn);
-            } 
-            else {
-                m_drive.DriveCartesian(0, 0, 0, 0);
-            }
-            break;
-        default:
-            m_drive.DriveCartesian(0, 0, 0);
-    }
-    
+    case NOTHING:
+        m_drive.DriveCartesian(0, 0, 0);
+        break;
+    case SIDE:
+        if (time < 10) {
+            m_drive.DriveCartesian(0.25, 0, gyroCorrectedTurn);
+        } 
+        else {
+            m_drive.DriveCartesian(0, 0, 0, 0);
+        }
+        break;
+    case CENTER:
+        if (time < 10) {
+            m_drive.DriveCartesian(0.25, 0, gyroCorrectedTurn);
+        } 
+        else {
+            m_drive.DriveCartesian(0, 0, 0, 0);
+        }
+        break;
+    default:
+        m_drive.DriveCartesian(0, 0, 0);
+
+
     SmartDashboard::PutNumber("sonicRange (mm)", rangeMeasurement);
     SmartDashboard::PutNumber("getAngleAuto",rawGyroReading);
-}
+    }
+}    
+
 
 void Robot::TeleopInit() {}
 
@@ -70,16 +98,17 @@ void Robot::TeleopPeriodic() {
     double gyroCorrectedTurn = - rawGyroReading / 90;
 
     // using a ternary operator to set rawX/Y to 0 if value is below minimum threshold
-    double rawX = abs(pilot.GetX(LEFT)) < DEADZONE_THRESHOLD ? 0 : pilot.GetX(LEFT);
-    double rawY = abs(pilot.GetY(LEFT)) < DEADZONE_THRESHOLD ? 0 : pilot.GetY(LEFT);
-    double turn = abs(pilot.GetX(RIGHT)) < DEADZONE_THRESHOLD ? 0 : pilot.GetX(RIGHT);
+    double rawX = fabs(pilot.GetX(LEFT)) < DEADZONE_THRESHOLD ? 0 : pilot.GetX(LEFT);
+    double rawY = fabs(pilot.GetY(LEFT)) < DEADZONE_THRESHOLD ? 0 : pilot.GetY(LEFT);
+    double turn = fabs(pilot.GetX(RIGHT)) < DEADZONE_THRESHOLD ? 0 : pilot.GetX(RIGHT);
 
     //stop gyro correct when turning
-    if (turn != 0){
-        m_drive.DriveCartesian(rawY, rawX, turn);
-    } else{
-        m_drive.DriveCartesian(rawY, rawX, gyroCorrectedTurn);
-    }
+    // if (turn != 0){
+    //     m_drive.DriveCartesian(rawY, rawX, turn);
+    // } else{
+    //     m_drive.DriveCartesian(rawY, rawX, gyroCorrectedTurn);
+    // }
+    m_drive.DriveCartesian(-rawY, -rawX, turn);
     // TODO add encoder for limits
 
     double shoot_threshold = 0.3;
@@ -101,6 +130,8 @@ void Robot::TeleopPeriodic() {
         shooter.Angle(joystick_value);
         // Debug
         SmartDashboard::PutNumber("Winch Joystick", joystick_value);
+    } else {
+        shooter.Angle(0);
     }
 
     // Debug
