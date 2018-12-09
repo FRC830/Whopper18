@@ -1,5 +1,6 @@
 
 #include "Robot.h"
+#include "Shooter.h"
 
 void Robot::RobotInit() {
     gyro.Calibrate();
@@ -11,79 +12,100 @@ void Robot::RobotInit() {
     SmartDashboard::PutData("Chooser", &chooser);
 }
 
-void Robot::RobotPeriodic() {
- 
-}
+void Robot::RobotPeriodic() {}
 
 void Robot::AutonomousInit() {
     // Reset Timer
     autonTimer.Reset();
     autonTimer.Start();
-
 }
+
 void Robot::AutonomousPeriodic() {
 
+    //useful values
     double rangeMeasurement = sonic_sensor.GetRangeMM();
-    SmartDashboard::PutNumber("sonicRange (mm)", rangeMeasurement);
     int distance_from_center = 1778;
-    int random_threshold = 127;
+    int random_threshold = 0;
     double rawGyroReading = gyro.GetAngle();
-    SmartDashboard::PutNumber("getAngleAuto",rawGyroReading);
-    double correctedGyro = - rawGyroReading / 90;
-    }
+    double gyroCorrectedTurn = - rawGyroReading / 90;
+    
+    //each case for auton starting position
     AutoMode mode = chooser.GetSelected();
-    if (mode == NOTHING) {
-
-    }
-    else if (mode == SIDE) {
-        if (rangeMeasurement <= random_threshold || rangeMeasurement >= distance_from_center) {
-            m_drive.DriveCartesian(0.25, 0, correctedGyro);
-        } 
-        else {
-            m_drive.DriveCartesian(0, 0, 0, 0);
-        }
-    else if (mode == CENTER) {
-        if (rangeMeasurement <= random_threshold || rangeMeasurement >= distance_from_center) {
-            m_drive.DriveCartesian(0.25, 0, correctedGyro);
-        } 
-        else {
-            m_drive.DriveCartesian(0, 0, 0, 0);
-        }
+    switch(mode){
+        case NOTHING:
+            m_drive.DriveCartesian(0, 0, 0);
+            break;
+        case SIDE:
+            if (rangeMeasurement <= random_threshold || rangeMeasurement >= distance_from_center) {
+                m_drive.DriveCartesian(0.25, 0, gyroCorrectedTurn);
+            } 
+            else {
+                m_drive.DriveCartesian(0, 0, 0, 0);
+            }
+            break;
+        case CENTER:
+            if (rangeMeasurement <= random_threshold || rangeMeasurement >= distance_from_center) {
+                m_drive.DriveCartesian(0.25, 0, gyroCorrectedTurn);
+            } 
+            else {
+                m_drive.DriveCartesian(0, 0, 0, 0);
+            }
+            break;
+        default:
+            m_drive.DriveCartesian(0, 0, 0);
     }
     
+    SmartDashboard::PutNumber("sonicRange (mm)", rangeMeasurement);
+    SmartDashboard::PutNumber("getAngleAuto",rawGyroReading);
 }
 
-void Robot::TeleopInit() {
-    // supposedly 'calibrates' the robot, doesn't actually.
+void Robot::TeleopInit() {}
 
-}
-
-//unfinished code
-double SmoothCosineTransformation(double input) {
-    // Use a cosine function to activate a smooth start and stop
-    double output = input;
-    return output;
-}
-
+//preventing speedy acceleration
 double prev_y;
 double prev_x;
 
 void Robot::TeleopPeriodic() {
+    double rawGyroReading = gyro.GetAngle();
+    double gyroCorrectedTurn = - rawGyroReading / 90;
+
     // using a ternary operator to set rawX/Y to 0 if value is below minimum threshold
     double rawX = abs(pilot.GetX(LEFT)) < DEADZONE_THRESHOLD ? 0 : pilot.GetX(LEFT);
     double rawY = abs(pilot.GetY(LEFT)) < DEADZONE_THRESHOLD ? 0 : pilot.GetY(LEFT);
-    double turn = pilot.GetX(RIGHT);
+    double turn = abs(pilot.GetX(RIGHT)) < DEADZONE_THRESHOLD ? 0 : pilot.GetX(RIGHT);
+
+    //stop gyro correct when turning
+    if (turn != 0){
+        m_drive.DriveCartesian(rawY, rawX, turn);
+    } else{
+        m_drive.DriveCartesian(rawY, rawX, gyroCorrectedTurn);
+    }
+    // TODO add encoder for limits
+
+    double shoot_threshold = 0.3;
+    bool intake_trigger_pressed = copilot.GetTriggerAxis(LEFT)>shoot_threshold;
+    bool shooting_trigger_pressed = copilot.GetTriggerAxis(RIGHT)>shoot_threshold;
+    double winch_control_threshold = 0.1;
+    // Control Intake & Outtake modes      
+    if(!(intake_trigger_pressed && shooting_trigger_pressed)) { 
+        shooter.Shooting(shooting_trigger_pressed);        
+        shooter.Intake(intake_trigger_pressed);
+        // Debug
+        SmartDashboard::PutBoolean("Shooting Trigger", shooting_trigger_pressed);
+        SmartDashboard::PutBoolean("Intake Trigger", intake_trigger_pressed);       
+    }
+    
+    //Control Winch Moving Up/Down
+    if (copilot.GetY(LEFT) > winch_control_threshold || copilot.GetY(LEFT) < -(winch_control_threshold)) {
+        double joystick_value = copilot.GetY(LEFT);
+        shooter.Angle(joystick_value);
+        // Debug
+        SmartDashboard::PutNumber("Winch Joystick", joystick_value);
+    }
 
     // Debug
-
     SmartDashboard::PutNumber("getAngle",gyro.GetAngle());
-
     SmartDashboard::PutData("Gyro",&gyro);
-
-    // double y = SmoothCosineTransformation(-rawY); // Testing, robot has inverse controls
-    // double x = SmoothCosineTransformation(rawX);
-    m_drive.DriveCartesian(rawY, rawX, turn);
-
 }
 
 void Robot::TestPeriodic() {}
