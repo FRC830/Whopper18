@@ -17,7 +17,7 @@ void Shooter::Angle(float change){
 void Shooter::Shooting(bool outtaking){
     if (outtaking) {
         timer.Start();
-        m_intake.Set(1);
+        m_intake.Set(-1);
         if (timer.Get() >= 0.5){
             m_servo.Set(0);
         }
@@ -31,7 +31,7 @@ void Shooter::Shooting(bool outtaking){
 // Turns on/off the m1 intakeWheels to spin inward based on a bool
 void Shooter::Intake(bool intaking){
     if (intaking){
-        m_intake.Set(-1);
+        m_intake.Set(1);
     } else {
         m_intake.Set(0);
     }
