@@ -118,11 +118,12 @@ void Robot::TeleopPeriodic() {
     // Control Intake & Outtake modes      
     if(!(intake_trigger_pressed && shooting_trigger_pressed)) { 
         shooter.Shooting(shooting_trigger_pressed);        
-        shooter.Intake(intake_trigger_pressed);
-        // Debug
-        SmartDashboard::PutBoolean("Shooting Trigger", shooting_trigger_pressed);
-        SmartDashboard::PutBoolean("Intake Trigger", intake_trigger_pressed);       
+        shooter.Intake(intake_trigger_pressed); 
     }
+
+    // Debug
+    SmartDashboard::PutBoolean("Shooting Trigger", shooting_trigger_pressed);
+    SmartDashboard::PutBoolean("Intake Trigger", intake_trigger_pressed);      
     
     //Control Winch Moving Up/Down
     if (copilot.GetY(LEFT) > winch_control_threshold || copilot.GetY(LEFT) < -(winch_control_threshold)) {
