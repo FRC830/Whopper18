@@ -116,10 +116,16 @@ void Robot::TeleopPeriodic() {
     bool shooting_trigger_pressed = copilot.GetTriggerAxis(RIGHT)>shoot_threshold;
     double winch_control_threshold = 0.1;
     // Control Intake & Outtake modes      
-    if(!(intake_trigger_pressed && shooting_trigger_pressed)) { 
-        shooter.Shooting(shooting_trigger_pressed);        
-        shooter.Intake(intake_trigger_pressed); 
+    if(!(intake_trigger_pressed && shooting_trigger_pressed)) {
+        if (shooting_trigger_pressed){
+            shooter.Flywheel(shooting_trigger_pressed);        
+        } else {
+            shooter.Intake(intake_trigger_pressed); 
+        }
     }
+
+    //shoots when trigger is pressed 
+    shooter.Shoot(shooting_trigger_pressed);
 
     // Debug
     SmartDashboard::PutBoolean("Shooting Trigger", shooting_trigger_pressed);

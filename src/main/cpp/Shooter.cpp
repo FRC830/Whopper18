@@ -9,25 +9,32 @@ void Shooter::Angle(float change){
         m_winch.Set(change);
     }
     else{
-        m_winch.Set(0.1);
+        m_winch.Set(-0.1);
     }
 }
 // winch won't stop
 // Turns on/off the m1 intakeWheels to spin outward based on a bool
-void Shooter::Shooting(bool outtaking){
-    if (outtaking) {
+void Shooter::Shoot(bool shooting){
+    if (shooting) {
         timer.Start();
-        m_intake.Set(-1);
         if (timer.Get() >= 0.5){
             m_servo.Set(0);
         }
     } else {
         timer.Stop();
         timer.Reset();
-        m_intake.Set(0);
         m_servo.Set(0.5);
     }
 }
+
+void Shooter::Flywheel(bool shooting){
+    if (shooting){
+       m_intake.Set(-1);
+    } else {
+        m_intake.Set(0);
+    }
+}
+
 // Turns on/off the m1 intakeWheels to spin inward based on a bool
 void Shooter::Intake(bool intaking){
     if (intaking){

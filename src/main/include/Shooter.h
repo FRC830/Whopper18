@@ -9,7 +9,8 @@
 class Shooter {
     public:
         void Intake(bool intaking);
-        void Shooting(bool outtaking);
+        void Shoot(bool shooting);
+        void Flywheel(bool shooting);
         void Angle(float change);
         Shooter(WPI_TalonSRX &intake, WPI_TalonSRX &winch, Servo &servo);
 
