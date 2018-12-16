@@ -9,7 +9,7 @@ void Shooter::Angle(float change){
         m_winch.Set(change);
     }
     else{
-        m_winch.Set(-0.1);
+        m_winch.Set(0.1);
     }
 }
 // winch won't stop
@@ -17,7 +17,7 @@ void Shooter::Angle(float change){
 void Shooter::Shoot(bool shooting){
     if (shooting) {
         timer.Start();
-        if (timer.Get() >= 0.5){
+        if (timer.Get() >= shootTime){
             m_servo.Set(0);
         }
     } else {

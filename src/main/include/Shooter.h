@@ -22,6 +22,7 @@ class Shooter {
         Servo &m_servo;
         Timer timer;
         DigitalInput limit{SWITCH_DIO};
+        const double shootTime = 1.0;
 };
 
 #endif

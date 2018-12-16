@@ -23,11 +23,14 @@ void Robot::AutonomousInit() {
 void Robot::AutonomousPeriodic() {
 
     //useful values
-    double rangeMeasurement = sonic_sensor.GetRangeMM();
-    int distance_from_center = 1778;
-    int random_threshold = 0;
+    // double rangeMeasurement = sonic_sensor.GetRangeMM();
+    // int distance_from_center = 1778;
+    // int random_threshold = 0;
     double rawGyroReading = gyro.GetAngle();
-    double gyroCorrectedTurn = - rawGyroReading / 90;
+    //double gyroCorrectedTurn = - rawGyroReading / 90;
+    double gyroCorrectedTurn = 0;
+    double autonSpeed = 0.25;
+    double maxTime = 4.5;
     double time = autonTimer.Get();
 
     //each case for auton starting position
@@ -62,16 +65,16 @@ void Robot::AutonomousPeriodic() {
         m_drive.DriveCartesian(0, 0, 0);
         break;
     case SIDE:
-        if (time < 10) {
-            m_drive.DriveCartesian(0.25, 0, gyroCorrectedTurn);
+        if (time < maxTime) {
+            m_drive.DriveCartesian(autonSpeed, 0, gyroCorrectedTurn);
         } 
         else {
             m_drive.DriveCartesian(0, 0, 0, 0);
         }
         break;
     case CENTER:
-        if (time < 10) {
-            m_drive.DriveCartesian(0.25, 0, gyroCorrectedTurn);
+        if (time < maxTime+2) {
+            m_drive.DriveCartesian(autonSpeed, 0, gyroCorrectedTurn);
         } 
         else {
             m_drive.DriveCartesian(0, 0, 0, 0);
@@ -81,8 +84,10 @@ void Robot::AutonomousPeriodic() {
         m_drive.DriveCartesian(0, 0, 0);
 
 
-    SmartDashboard::PutNumber("sonicRange (mm)", rangeMeasurement);
-    SmartDashboard::PutNumber("getAngleAuto",rawGyroReading);
+    // SmartDashboard::PutNumber("sonicRange (mm)", rangeMeasurement);
+    SmartDashboard::PutNumber("getAngleAuto (raw)",rawGyroReading);
+    SmartDashboard::PutNumber("getAngleAuto (corrected)",gyroCorrectedTurn);
+
     }
 }    
 
@@ -108,8 +113,7 @@ void Robot::TeleopPeriodic() {
     // } else{
     //     m_drive.DriveCartesian(rawY, rawX, gyroCorrectedTurn);
     // }
-    m_drive.DriveCartesian(-rawY, -rawX, turn);
-    // TODO add encoder for limits
+    m_drive.DriveCartesian(-rawY, rawX, turn);
 
     double shoot_threshold = 0.3;
     bool intake_trigger_pressed = copilot.GetTriggerAxis(LEFT)>shoot_threshold;
@@ -132,11 +136,11 @@ void Robot::TeleopPeriodic() {
     SmartDashboard::PutBoolean("Intake Trigger", intake_trigger_pressed);      
     
     //Control Winch Moving Up/Down
-    if (copilot.GetY(LEFT) > winch_control_threshold || copilot.GetY(LEFT) < -(winch_control_threshold)) {
-        double joystick_value = copilot.GetY(LEFT);
-        shooter.Angle(joystick_value);
+    double joystick_value = copilot.GetY(LEFT);
+    if (joystick_value > winch_control_threshold || joystick_value < -(winch_control_threshold)) {
+        shooter.Angle(-joystick_value);
         // Debug
-        SmartDashboard::PutNumber("Winch Joystick", joystick_value);
+        SmartDashboard::PutNumber("Winch Joystick (Neg)", -joystick_value);
     } else {
         shooter.Angle(0);
     }
